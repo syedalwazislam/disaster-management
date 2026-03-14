@@ -161,8 +161,8 @@ export default function AuthModal({ isOpen, onClose, mode, setMode }: AuthModalP
                   >
                     <option value="">Select Country</option>
                     {countries.map(country => (
-                      <option key={country.code} value={country.name}>
-                        {country.name}
+                      <option key={country} value={country}>
+                        {country}
                       </option>
                     ))}
                   </select>
