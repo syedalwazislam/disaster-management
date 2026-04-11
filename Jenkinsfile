@@ -1,12 +1,12 @@
+
 pipeline {
     agent any
 
     stages {
 
-        stage('Clone Repo') {
+        stage('Checkout Code') {
             steps {
-                git branch: 'main',
-                url: 'https://github.com/syedalwazislam/disaster-management.git'
+                git 'https://github.com/syedalwazislam/disaster-management.git'
             }
         }
 
@@ -16,6 +16,5 @@ pipeline {
                 sh 'docker-compose up -d --build'
             }
         }
-
     }
 }
