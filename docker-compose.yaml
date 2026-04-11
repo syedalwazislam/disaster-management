@@ -1,27 +1,18 @@
-version: "3.8"
+version: "3"
 
 services:
   app:
     image: node:18
+    container_name: web_app_container
     working_dir: /app
     volumes:
-      - .:/app
-      - /app/node_modules
+      - ./:/app   # 🔥 code mounted here
     ports:
       - "7200:3000"
-    command: sh -c "npm install && npm start"
-    environment:
-      - MONGO_URI=mongodb://mongo:27017/mydb
-    depends_on:
-      - mongo
+    command: npm start
 
   mongo:
     image: mongo
-    container_name: mongo_db_jenkins
+    container_name: mongo_db_container
     ports:
       - "27018:27017"
-    volumes:
-      - mongo_data:/data/db
-
-volumes:
-  mongo_data:

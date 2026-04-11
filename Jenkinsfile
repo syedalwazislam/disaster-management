@@ -1,20 +1,40 @@
-
 pipeline {
     agent any
 
     stages {
 
-        stage('Checkout Code') {
+        stage('Clone Repository') {
             steps {
-                git 'https://github.com/syedalwazislam/disaster-management.git'
+                git branch: 'main',
+                    url: 'https://github.com/syedalwazislam/disaster-management'
             }
         }
 
-        stage('Build & Deploy') {
+        stage('Stop Old Containers') {
             steps {
                 sh 'docker-compose down || true'
+            }
+        }
+
+        stage('Build & Run Containers') {
+            steps {
                 sh 'docker-compose up -d --build'
             }
+        }
+
+        stage('Check Running Containers') {
+            steps {
+                sh 'docker ps'
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "Pipeline executed successfully 🚀"
+        }
+        failure {
+            echo "Pipeline failed ❌"
         }
     }
 }
