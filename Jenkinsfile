@@ -6,7 +6,7 @@ pipeline {
         stage('Clone Repo') {
             steps {
                 git branch: 'main',
-                url: 'https://github.com/YOUR_USERNAME/YOUR_REPO.git'
+                url: 'https://github.com/syedalwazislam/disaster-management.git'
             }
         }
 
