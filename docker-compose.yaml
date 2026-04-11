@@ -9,7 +9,7 @@ services:
       - /app/node_modules
     ports:
       - "7200:3000"
-    command: sh -c "npm install && npm start"
+    command: sh -c "npm install && npm run build && npm start"
     environment:
       - MONGO_URI=mongodb://mongo:27017/mydb
     depends_on:
