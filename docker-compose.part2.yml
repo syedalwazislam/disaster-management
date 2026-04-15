@@ -1,0 +1,28 @@
+# Part II — bind-mounted source (no image build from Dockerfile), different names/ports
+services:
+  dm-web-ci:
+    image: node:20-bookworm
+    container_name: dm-web-ci
+    working_dir: /app
+    ports:
+      - "3001:3000"
+    environment:
+      MONGODB_URI: mongodb://dm-mongo-ci:27017
+      MONGODB_DB: ${MONGODB_DB:-disasterdb}
+      NEXT_TELEMETRY_DISABLED: "1"
+    volumes:
+      - .:/app
+      - node_modules_ci:/app/node_modules
+    command: sh -c "npm ci && npm run build && npm start"
+    depends_on:
+      - dm-mongo-ci
+
+  dm-mongo-ci:
+    image: mongo:7
+    container_name: dm-mongo-ci
+    volumes:
+      - mongo_data_part2:/data/db
+
+volumes:
+  mongo_data_part2:
+  node_modules_ci:
