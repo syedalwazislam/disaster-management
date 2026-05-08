@@ -1,10 +1,13 @@
 pipeline {
     agent any
 
+
     environment {
-        APP_URL    = "http://13.63.50.4:7100"
-        IMAGE_TAG  = "selenium-tests:${BUILD_NUMBER}"
-        REPORT_DIR = "selenium-tests/reports"
+        APP_URL     = "http://13.63.50.4:7100"
+        APP_HOST    = "13.63.50.4"
+        IMAGE_TAG   = "selenium-tests:${BUILD_NUMBER}"
+        REPORT_DIR  = "selenium-tests/reports"
+        SSH_CRED_ID = "app-ec2-ssh-key"
     }
 
     stages {
@@ -16,19 +19,48 @@ pipeline {
             }
         }
 
+        stage('Deploy App to EC2') {
+            steps {
+                sshagent(credentials: ["${SSH_CRED_ID}"]) {
+                    sh """
+                        ssh -o StrictHostKeyChecking=no ubuntu@${APP_HOST} '
+                            set -e
+
+                            if [ -d ~/disaster-management ]; then
+                                cd ~/disaster-management
+                                git pull origin main
+                            else
+                                git clone https://github.com/syedalwazislam/disaster-management ~/disaster-management
+                                cd ~/disaster-management
+                            fi
+
+                            cd ~/disaster-management
+
+                            echo "Stopping old containers..."
+                            docker compose down --remove-orphans 2>/dev/null || true
+
+                            echo "Starting app..."
+                            docker compose up -d --build
+                        '
+                    """
+                }
+            }
+        }
+
         stage('Verify App is Running') {
             steps {
                 sh '''
-                    echo "Checking app is live on port 7100..."
-                    for i in $(seq 1 10); do
+                    echo "Waiting for app to come up on port 7100..."
+                    for i in $(seq 1 15); do
                         if curl -sf http://13.63.50.4:7100 > /dev/null 2>&1; then
                             echo "App is up!"
-                            break
+                            exit 0
                         fi
-                        echo "Attempt $i - waiting 5s..."
-                        sleep 5
+                        echo "Attempt $i/15 — waiting 6s..."
+                        sleep 6
                     done
-                    curl -sf http://13.63.50.4:7100 || (echo "ERROR: App not running on :7100" && exit 1)
+                    echo "ERROR: App did not come up after 90 seconds"
+                    exit 1
                 '''
             }
         }
@@ -45,27 +77,27 @@ pipeline {
         }
 
         stage('Run Selenium Tests') {
-    steps {
-        sh """
-            mkdir -p ${WORKSPACE}/${REPORT_DIR}
-            chmod 777 ${WORKSPACE}/${REPORT_DIR}
-            docker run --rm \\
-                --network host \\
-                -e APP_URL=${APP_URL} \\
-                -e HEADLESS=true \\
-                -v ${WORKSPACE}/${REPORT_DIR}:/tests/reports \\
-                ${IMAGE_TAG} || true
-        """
-    }
-    post {
-        always {
-            junit allowEmptyResults: true,
-                  testResults: "${REPORT_DIR}/junit_results.xml"
-            archiveArtifacts artifacts: "${REPORT_DIR}/**",
-                             allowEmptyArchive: true
+            steps {
+                sh """
+                    mkdir -p ${WORKSPACE}/${REPORT_DIR}
+                    chmod 777 ${WORKSPACE}/${REPORT_DIR}
+                    docker run --rm \\
+                        --network host \\
+                        -e APP_URL=${APP_URL} \\
+                        -e HEADLESS=true \\
+                        -v ${WORKSPACE}/${REPORT_DIR}:/tests/reports \\
+                        ${IMAGE_TAG} || true
+                """
+            }
+            post {
+                always {
+                    junit allowEmptyResults: true,
+                          testResults: "${REPORT_DIR}/junit_results.xml"
+                    archiveArtifacts artifacts: "${REPORT_DIR}/**",
+                                     allowEmptyArchive: true
+                }
+            }
         }
-    }
-}
 
         stage('Cleanup') {
             steps {
@@ -77,7 +109,6 @@ pipeline {
     post {
         always {
             script {
-                // Read the email of whoever made the last git commit
                 def committerEmail = sh(
                     script: "git log -1 --pretty=format:'%ae'",
                     returnStdout: true
