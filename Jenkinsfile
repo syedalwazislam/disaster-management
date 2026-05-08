@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        APP_URL    = "http://localhost:7100"
+        APP_URL    = "http://16.171.38.169:7100"
         IMAGE_TAG  = "selenium-tests:${BUILD_NUMBER}"
         REPORT_DIR = "selenium-tests/reports"
     }
