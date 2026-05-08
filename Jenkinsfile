@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        APP_URL    = "http://16.171.38.169:7100"
+        APP_URL    = "http://13.63.50.4:7100"
         IMAGE_TAG  = "selenium-tests:${BUILD_NUMBER}"
         REPORT_DIR = "selenium-tests/reports"
     }
@@ -21,14 +21,14 @@ pipeline {
                 sh '''
                     echo "Checking app is live on port 7100..."
                     for i in $(seq 1 10); do
-                        if curl -sf http://16.171.38.169:7100 > /dev/null 2>&1; then
+                        if curl -sf http://13.63.50.4:7100 > /dev/null 2>&1; then
                             echo "App is up!"
                             break
                         fi
                         echo "Attempt $i - waiting 5s..."
                         sleep 5
                     done
-                    curl -sf http://16.171.38.169:7100 || (echo "ERROR: App not running on :7100" && exit 1)
+                    curl -sf http://13.63.50.4:7100 || (echo "ERROR: App not running on :7100" && exit 1)
                 '''
             }
         }
