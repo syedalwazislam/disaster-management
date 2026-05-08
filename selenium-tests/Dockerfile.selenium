@@ -1,8 +1,11 @@
 FROM selenium/standalone-chrome:latest
-
 WORKDIR /app
 COPY . .
-
 RUN pip install -r requirements.txt
+RUN mkdir -p /tests/reports && chmod 777 /tests/reports
 
-CMD ["pytest"]
+CMD ["pytest", \
+     "--html=/tests/reports/test_report.html", \
+     "--self-contained-html", \
+     "--junit-xml=/tests/reports/junit_results.xml", \
+     "-v"]

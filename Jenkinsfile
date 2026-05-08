@@ -45,26 +45,27 @@ pipeline {
         }
 
         stage('Run Selenium Tests') {
-            steps {
-                sh '''
-                    mkdir -p ${REPORT_DIR}
-                    docker run --rm \
-                        --network host \
-                        -e APP_URL=${APP_URL} \
-                        -e HEADLESS=true \
-                        -v $(pwd)/${REPORT_DIR}:/tests/reports \
-                        ${IMAGE_TAG} || true
-                '''
-            }
-            post {
-                always {
-                    junit allowEmptyResults: true,
-                          testResults: "${REPORT_DIR}/junit_results.xml"
-                    archiveArtifacts artifacts: "${REPORT_DIR}/**",
-                                     allowEmptyArchive: true
-                }
-            }
+    steps {
+        sh """
+            mkdir -p ${WORKSPACE}/${REPORT_DIR}
+            chmod 777 ${WORKSPACE}/${REPORT_DIR}
+            docker run --rm \\
+                --network host \\
+                -e APP_URL=${APP_URL} \\
+                -e HEADLESS=true \\
+                -v ${WORKSPACE}/${REPORT_DIR}:/tests/reports \\
+                ${IMAGE_TAG} || true
+        """
+    }
+    post {
+        always {
+            junit allowEmptyResults: true,
+                  testResults: "${REPORT_DIR}/junit_results.xml"
+            archiveArtifacts artifacts: "${REPORT_DIR}/**",
+                             allowEmptyArchive: true
         }
+    }
+}
 
         stage('Cleanup') {
             steps {
