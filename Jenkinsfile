@@ -1,6 +1,9 @@
 pipeline {
     agent any
 
+    triggers {
+        githubPush()
+    }
 
     environment {
         APP_URL     = "http://13.63.50.4:7100"
@@ -35,9 +38,6 @@ pipeline {
                             fi
 
                             cd ~/disaster-management
-
-                            echo "Stopping old containers..."
-                            docker compose down --remove-orphans 2>/dev/null || true
 
                             echo "Starting app..."
                             docker compose up -d --build
