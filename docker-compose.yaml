@@ -1,0 +1,31 @@
+
+
+services:
+  app:
+    image: node:18
+    container_name: compassion_app
+    working_dir: /app
+    volumes:
+      - ./:/app
+    ports:
+      - "7100:3000"
+    command: sh -c "npm install --include=dev && npm run build && npm start"
+    environment:
+      - MONGODB_URI=mongodb+srv://syedalwaz007_db_user:alrah0306@cluster0.xbg6mxa.mongodb.net/?appName=Cluster0
+      - MONGODB_DB=disasterdb
+    depends_on:
+      - mongo
+    stdin_open: true
+    tty: true
+
+  mongo:
+    image: mongo:6
+    container_name: compassion_mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    restart: unless-stopped
+
+volumes:
+  mongo_data:
