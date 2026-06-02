@@ -1,5 +1,5 @@
 # Use Node base image
-FROM node:18
+FROM node:18-al
 
 # Create app directory
 WORKDIR /app
@@ -8,7 +8,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install dependencies
-RUN npm install
+RUN npm install --production
 
 # Copy rest of code
 COPY . .
@@ -17,6 +17,9 @@ RUN npm run build
 
 # Expose port
 EXPOSE 3000
+
+ENV NODE_ENV=production
+
 
 # Start app
 CMD ["npm", "start"]
